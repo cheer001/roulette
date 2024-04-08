@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head design-width="750">
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
+    />
+    <title>轮盘</title>
+    <link rel="stylesheet" href="./css/index.css" />
+
+    <script src="./js/rem.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <script src="./js/main.js"></script> -->
+  </head>
+  <body>
+    <div id="app">
+      <!-- 头部 -->
+      <div class="header">
+        <div class="container clearfix">
+          <a class="logo fl">
+            <img src="" alt="logo" />
+          </a>
+
+          <div class="info-box fr clearfix">
+            <div class="info-item fl">
+              <span class="label">欢迎您，</span>
+              <span class="value">gerry</span>
+            </div>
+            <!-- <div class="info-item fl">
+              <span class="label">当前幸运值：</span>
+              <span class="value"
+                >{{luckyRouletteSetting.currentProgress}}</span
+              >
+            </div> -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 活动列表 -->
+      <div class="act-list constiner"></div>
+
+      <!-- 主体 -->
+      <div class="main container clearfix">
+        <div class="lucky-val">
+          <p>
+            <span>当前幸运值</span>
+            <span>{{luckyRouletteSetting.currentProgress}}</span>
+          </p>
+        </div>
+        <section>
+          <!-- 轮盘部分 -->
+          <div class="roulette-wrap fl">
+            <div class="roulette-container">
+              <!-- 转盘背景及奖品 -->
+              <div
+                class="roulette"
+                :style="{
+                  background: currentType.hdzpBg,
+                  transform: rotateStyle,
+                }"
+                @transitionend="onFinishedRun()"
+              >
+                <div
+                  class="roulette-item"
+                  v-for="(item,index) in 10"
+                  :style="`transform: rotate(${index*36}deg);`"
+                >
+                  <span> {{item}}00 </span>
+                  <img src="./img/img_zphdjp_s3.png" alt="" />
+                </div>
+              </div>
+              <!-- 指针 -->
+              <div
+                class="pointer"
+                :style="{
+                  background: currentType.ljcjBtn,
+                  filter: finishedStatus ? 'grayscale(0.75)' : '',
+                }"
+                @click="handleDrawAward"
+              >
+                <span class="draw-txt"> 立即<br />抽奖 </span>
+              </div>
+              <!-- 中奖区域 -->
+              <div
+                class="win-area"
+                :style="{ background: currentType.prizeArea }"
+              >
+                <img
+                  src="./img/img_zphdxzg.png"
+                  alt=""
+                  :class="{ flash: config.finishedRun }"
+                  @animationend="onFinishedFlash"
+                />
+              </div>
+            </div>
+            <div class="type clearfix">
+              <div
+                class="type-item fl"
+                v-for="item in luckyRouletteSetting.items"
+                :class="{
+                  'type-btn': true,
+                  disabled: active !== item.type && finishedStatus,
+                  active: active === item.type,
+                }"
+                @click="onChangeType(item.type)"
+              >
+                <p class="name">{{typeText(item.type)}}</p>
+                <p class="lucky-value">{{item.luckyValue}}幸运值</p>
+              </div>
+            </div>
+          </div>
+          <!-- 记录区域 -->
+          <div class="records fr">
+            <div class="record-type clearfix">
+              <div
+                class="record-type-item fl"
+                v-for="item in recordTypes"
+                :class="{active:recordType === item.type}"
+                @click="onChangeRecordType(item.type)"
+              >
+                {{item.name}}
+              </div>
+            </div>
+            <div class="record-list">
+              <div class="record-item" v-for="item in 25">
+                <div class="record-item-icon">
+                  <img src="./img/icon_zphd_diamond.png" alt="" />
+                </div>
+                <div class="record-item-content">
+                  <span class="time">09-09 12:00</span>
+                  <span class="desc">qj**i4在钻石转盘获得了</span>
+                </div>
+                <div class="record-item-bonus">
+                  <span>15888.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 说明区域 -->
+      <div class="explain container">
+        <div class="explain-content">
+          <div>
+            <span class="title">活动内容</span>
+            <div>
+              一、活动时间(UTC+8):<br />2023-02-22 00:00:00 - 2030-02-28
+              23:59:59<br />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <dialog id="winModal" ref="winModal">
+        <div
+          class="roulette-simg"
+          :style="{
+            background: winModalType.winBgs,
+        }"
+        ></div>
+        <div
+          class="roulette-img"
+          :style="{
+            background: winModalType.winBg,
+        }"
+        ></div>
+        <div
+          class="roulette-text"
+          :style="{
+            background: winModalType.winBtn,
+          }"
+        >
+          领取成功
+        </div>
+
+        <p class="bonus-text"><span>{{winBonus}}</span>已存入余额</p>
+        <div class="footer">
+          <button @click="onCloseWin"></button>
+        </div>
+      </dialog>
+    </div>
+
+    <script>
+      const { createApp, ref, reactive, computed } = Vue;
+
+      createApp({
+        setup() {
+          const RouletteTypeEnums = {
+            /** 白银 */
+            Silver: 0,
+            /** 黄金 */
+            Gold: 1,
+            /** 钻石 */
+            Diamond: 2,
+          };
+
+          const recordTypes = [
+            {
+              type: 0,
+              name: "获奖公告",
+            },
+            {
+              type: 1,
+              name: "我的记录",
+            },
+          ];
+          const recordType = ref(recordTypes[0].type);
+
+          const silver = reactive({
+            hdzpBg: `url(./img/bj_hdzp_silver.png) 0px 0px / 100% 100%`,
+            ljcjBtn: `url(./img/img_zphdljcj_silver.png) 0px 0px / 100% 100%`,
+            prizeArea: `url(./img/img_zphdzz_silver.png) 0px 0px / 100% 100%`,
+            winBg: `url(./img/roulette_silver.png) 0px 0px / 100% 100%`,
+            winBgs: `url(./img/icon_zphd_silver.png) 0px 0px / 100% 100%`,
+            winBtn: `url(./img/img_zplq_silver.png) 0px 0px / 100% 100%`,
+          });
+
+          const gold = reactive({
+            hdzpBg: `url(./img/bj_hdzp_gold.png) 0px 0px / 100% 100%`,
+            ljcjBtn: `url(./img/img_zphdljcj_gold.png) 0px 0px / 100% 100%`,
+            prizeArea: `url(./img/img_zphdzz_gold.png) 0px 0px / 100% 100%`,
+            winBg: `url(./img/roulette_gold.png) 0px 0px / 100% 100%`,
+            winBgs: `url(./img/icon_zphd_gold.png) 0px 0px / 100% 100%`,
+            winBtn: `url(./img/img_zplq_gold.png) 0px 0px / 100% 100%`,
+          });
+
+          const diamond = reactive({
+            hdzpBg: `url(./img/bj_hdzp_diamond.png) 0px 0px / 100% 100%`,
+            ljcjBtn: `url(./img/img_zphdljcj_diamond.png) 0px 0px / 100% 100%`,
+            prizeArea: `url(./img/img_zphdzz_diamond.png) 0px 0px / 100% 100%`,
+            winBg: `url(./img/roulette_diamond.png) 0px 0px / 100% 100%`,
+            winBgs: `url(./img/icon_zphd_diamond.png) 0px 0px / 100% 100%`,
+            winBtn: `url(./img/img_zplq_diamond.png) 0px 0px / 100% 100%`,
+          });
+
+          const winModalType = computed(() => {
+            if (active.value === RouletteTypeEnums.Silver) {
+              return silver;
+            } else if (active.value === RouletteTypeEnums.Gold) {
+              return gold;
+            } else if (active.value === RouletteTypeEnums.Diamond) {
+              return diamond;
+            }
+          });
+
+          const typeData = [
+            {
+              type: 0,
+              luckyValue: 10,
+              prizes: {
+                bonus: 10,
+              },
+            },
+            {
+              type: 1,
+              luckyValue: 20,
+              prizes: {
+                bonus: 10,
+              },
+            },
+            {
+              type: 2,
+              luckyValue: 30,
+              prizes: {
+                bonus: 10,
+              },
+            },
+          ];
+
+          const ranDonArr = [360, 36, 72, 108, 144, 180, 216, 252, 288, 324];
+          const active = ref(RouletteTypeEnums.Silver);
+          const currentType = ref(silver);
+          const luckyRouletteSetting = reactive({
+            /**
+             * 转盘开关
+             *  0 = Silver (白银转盘)
+             *  1 = Gold (黄金转盘)
+             *  2 = Diamond (钻石转盘)
+             */
+            isOpen: [0, 1, 2],
+            /** 转盘配置  */
+            items: typeData,
+            //   [
+            //     {
+            //       /**
+            //        *  0 = Silver (白银转盘)
+            //        *  1 = Gold (黄金转盘)
+            //        *  2 = Diamond (钻石转盘)
+            //        */
+            //       type: 0,
+            //       /** 消耗幸运值 */
+            //       luckyValue: 0,
+            //       /**奖励以及概率 */
+            //       prizes: {
+            //         /** 奖金 */
+            //         bonus: 0,
+            //       },
+            //     },
+            //   ]
+            /** 幸运值比例，默认1:1 */
+            luckyRatio: 1,
+            /** 当前幸运值 */
+            currentProgress: 2000,
+          });
+          const bonusPosition = ref(0);
+          const currentRotate = ref(0);
+          const winBonus = ref(0);
+
+          const typeText = (type) => {
+            switch (type) {
+              case 0:
+                return "白银转盘";
+              case 1:
+                return "黄金转盘";
+              case 2:
+                return "钻石转盘";
+              default:
+                return "白银转盘";
+            }
+          };
+
+          const selectedRoulette = computed(() => {
+            return luckyRouletteSetting.items?.filter((item) => {
+              return item.type === active.value;
+            })[0];
+          });
+
+          const onChangeType = (type) => {
+            /** 当抽奖未结束时禁止切换转盘 */
+            if (finishedStatus.value) return;
+            active.value = type;
+
+            if (active.value === RouletteTypeEnums.Silver) {
+              currentType.value = silver;
+            } else if (active.value === RouletteTypeEnums.Gold) {
+              currentType.value = gold;
+            } else if (active.value === RouletteTypeEnums.Diamond) {
+              currentType.value = diamond;
+            }
+          };
+
+          const onChangeRecordType = (type) => {
+            recordType.value = type;
+          };
+
+          //#region 轮盘转动逻辑
+          /** 轮盘配置 */
+          const config = reactive({
+            /** 开始角度 */
+            begin: 0,
+            /** 基础圈数 / 360 */
+            basic: 2160,
+            /** 旋转结束角度 */
+            finishedAngle: 0,
+            /** 旋转结束 */
+            finishedRun: false,
+          });
+          /** 抽奖结果模态 */
+          //   const showResult = ref(false);
+          const winModal = ref(null);
+          // 旋转状态
+          const finishedStatus = ref(false);
+          const rotateStyle = computed(() => {
+            return `rotate(-${config.begin}deg)`;
+          });
+
+          /** 处理抽奖事件 */
+          const handleDrawAward = async () => {
+            if (
+              luckyRouletteSetting.currentProgress <
+              selectedRoulette.value.luckyValue
+            ) {
+              showMessage("幸运值不足", (close) => close());
+              return;
+            }
+            if (finishedStatus.value) return;
+            finishedStatus.value = true;
+            // setGlobalLoading(true);
+            try {
+              //   const res = await drawLuckyWheel(active.value, actionId.value);
+              //   if (!res) return;
+              //   const {
+              //     bonusAmount,
+              //     isSuccess,
+              //     message,
+              //     bonusIndex,
+              //     currentProgress,
+              //   } = res.data;
+              const bonusAmount = Math.floor(Math.random() * 1000);
+              const isSuccess = true;
+              const message = "抽奖成功";
+              const bonusIndex = Math.floor(Math.random() * 10);
+              console.log(bonusIndex);
+              const currentProgress = 1999;
+              winBonus.value = Number(bonusAmount);
+              if (!isSuccess) {
+                showMessage(message, (close) => close());
+                return;
+              }
+              luckyRouletteSetting.currentProgress = currentProgress;
+              bonusPosition.value = bonusIndex;
+              /** 计算旋转下标，并记录，下一次减去上一次即可保证正确旋转 */
+              const length = ranDonArr.length;
+              const index = bonusIndex === 0 ? 0 : length - bonusIndex;
+              run(ranDonArr[index] - currentRotate.value);
+              currentRotate.value = ranDonArr[index];
+            } catch {
+              finishedStatus.value = false;
+            } finally {
+              //   setGlobalLoading(false);
+            }
+          };
+          const getRotationStyle = (index) => {
+            return `transform: rotate(${ranDonArr[index]}deg)`;
+          };
+          /** 旋转轮盘 */
+          const run = (angle) => {
+            let timer;
+
+            config.begin += config.basic + angle;
+
+            timer = setInterval(function () {
+              if (config.begin > config.basic + angle) {
+                config.finishedAngle = config.begin;
+                clearInterval(timer);
+              }
+            }, 50);
+          };
+
+          /** 旋转完成 */
+          const onFinishedRun = () => {
+            config.finishedRun = true;
+          };
+
+          /** 闪烁完成 */
+          const onFinishedFlash = () => {
+            config.finishedRun = false;
+            showWinModal();
+            finishedStatus.value = false;
+            // showMessage("抽奖成功", (close) => {
+            //   close();
+            // });
+            /** 当用户显示的界面是我的记录，完成转盘后刷新记录 */
+            // if (recordActive.value === 1) {
+            //   onClickTab();
+            //   return;
+            // }
+            // /** 当抽到的奖励是后三位，789时，则刷新 */
+            // bonusPosition.value > 6 ? onClickTab() : null;
+          };
+          //#endregion
+
+          //#region 中奖模态
+          const getWinModalSubDom = () => {
+            return {
+              rouletteSimg: document.querySelector(".roulette-simg"),
+              rouletteImg: document.querySelector(".roulette-img"),
+              rouletteText: document.querySelector(".roulette-text"),
+            };
+          };
+
+          const showWinModal = () => {
+            winModal.value.showModal();
+
+            const { rouletteSimg, rouletteImg, rouletteText } =
+              getWinModalSubDom();
+            // 为roulette-simg元素添加bounceOut动画
+            rouletteSimg.classList.add("bounceOut");
+
+            // 监听动画结束事件
+            rouletteSimg.addEventListener("animationend", () => {
+              // 动画结束后隐藏或移除roulette-simg元素
+              rouletteSimg.style.display = "none"; // 或 rouletteSimg.remove();
+
+              // 显示roulette-img元素并添加bounceIn动画
+              rouletteImg.style.display = "block";
+              rouletteText.style.display = "block";
+              rouletteImg.classList.add("bounceIn");
+            });
+          };
+
+          const onCloseWin = () => {
+            winModal.value.close();
+
+            const { rouletteSimg, rouletteImg, rouletteText } =
+              getWinModalSubDom();
+            rouletteSimg.style.display = "block";
+            rouletteImg.style.display = "none";
+            rouletteText.style.display = "none";
+          };
+          //#endregion
+
+          return {
+            config,
+            active,
+            currentType,
+            rotateStyle,
+            luckyRouletteSetting,
+            finishedStatus,
+            recordTypes,
+            recordType,
+            winModalType,
+            winBonus,
+            winModal,
+            typeText,
+            onChangeType,
+            onChangeRecordType,
+            getRotationStyle,
+            onFinishedRun,
+            onFinishedFlash,
+            handleDrawAward,
+            onCloseWin,
+          };
+        },
+      }).mount("#app");
+    </script>
+
+    <script>
+      const DialogComp = {
+        props: {
+          msg: {
+            type: String,
+            required: true,
+          },
+          onClick: {
+            type: Function,
+            required: true,
+          },
+        },
+        template: `
+        <div
+            class="dialog"
+            style="
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 10001;
+            width: 100%;
+            height: 100%;
+            "
+        >
+            <div
+                class="overlay"
+                style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 10002;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                "
+                ></div>
+            <div
+                class="dialog-content"
+                style="
+                max-width: 360px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                z-index: 10003;
+                width: 90%;
+                transform: translate(-50%, -50%);
+                line-height: 1.5;
+                background-color: rgba(255, 255, 255, 0.95);
+                border-radius: 10px;
+                "
+                >
+            <div
+                class="dialog-content-header"
+                style="
+                position: relative;
+                padding: 20px 20px 10px;
+                margin-bottom: -25px;
+                text-align: center;
+                "
+            >
+                <span>温馨提示</span>
+            </div>
+            <div
+                class="dialog-content-container"
+                style="
+                max-height: 1220px;
+                overflow-y: auto;
+                margin: 25px 20px;
+                color: #666;
+                text-align: center;
+                "
+            >
+                <p>{{msg}}</p>
+            </div>
+            <div
+                class="dialog-content-footer"
+                style="
+                display: flex;
+                position: relative;
+                font-size: 0;
+                border-top: 1px solid #eee;
+                "
+            >
+                <button
+                @click="onClick"
+                style="
+                    height: 40px;
+                    width: 100%;
+                    border: none;
+                    background: transparent;
+                    color: #1672f2;
+                    cursor: pointer;
+                    border-bottom-right-radius: 10px;
+                    border-bottom-left-radius: 10px;
+                "
+                onMouseOver="this.style.background='#eee'"
+                onMouseOut="this.style.background='transparent'"
+                >
+                确定
+                </button>
+            </div>
+            </div>
+        </div>
+        `,
+      };
+
+      const showMessage = (msg, clickHandler) => {
+        const app = createApp(DialogComp, {
+          msg,
+          onClick() {
+            clickHandler &&
+              clickHandler(() => {
+                app.unmount();
+                div.remove();
+              });
+          },
+        });
+
+        const div = document.createElement("div");
+        document.body.appendChild(div);
+        app.mount(div);
+      };
+
+      // showMessage("抽奖成功", (close) => {
+      //   close();
+      // });
+    </script>
+  </body>
+</html>
