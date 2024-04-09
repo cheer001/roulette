@@ -7,10 +7,12 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
     />
     <title>轮盘</title>
+    <link rel="stylesheet" href="./css/swiper.min.css" />
     <link rel="stylesheet" href="./css/index.css" />
 
     <script src="./js/rem.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
     <!-- <script src="./js/main.js"></script> -->
   </head>
   <body>
@@ -38,7 +40,30 @@
       </div>
 
       <!-- 活动列表 -->
-      <div class="act-list constiner"></div>
+      <div class="act-container container">
+        <div class="divider-wrap">
+          <div class="divider"></div>
+          <span>全部活动</span>
+          <div class="divider"></div>
+        </div>
+
+        <div class="left swiper-button-prev"></div>
+        <div class="act-list swiper swiperContainer">
+          <div class="list-content swiper-wrapper">
+            <div
+              class="act-item swiper-slide"
+              :class="{active:item===actionId}"
+              v-for=" item in 7"
+              @click="onChangeActionId(item)"
+            >
+              <div class="act-item-img">
+                <img src="./img/rouletteActive.png" alt="" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right swiper-button-next"></div>
+      </div>
 
       <!-- 主体 -->
       <div class="main container clearfix">
@@ -153,6 +178,7 @@
         </div>
       </div>
 
+      <!-- 中奖提示模态 -->
       <dialog id="winModal" ref="winModal">
         <div
           class="roulette-simg"
@@ -307,6 +333,11 @@
           const bonusPosition = ref(0);
           const currentRotate = ref(0);
           const winBonus = ref(0);
+          const actionId = ref(1);
+
+          const onChangeActionId = (id) => {
+            actionId.value = id;
+          };
 
           const typeText = (type) => {
             switch (type) {
@@ -504,6 +535,7 @@
             winModalType,
             winBonus,
             winModal,
+            actionId,
             typeText,
             onChangeType,
             onChangeRecordType,
@@ -512,6 +544,7 @@
             onFinishedFlash,
             handleDrawAward,
             onCloseWin,
+            onChangeActionId,
           };
         },
       }).mount("#app");
@@ -639,10 +672,33 @@
         document.body.appendChild(div);
         app.mount(div);
       };
+    </script>
 
-      // showMessage("抽奖成功", (close) => {
-      //   close();
-      // });
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Initialize Swiper -->
+    <script>
+      const clientWith = document.documentElement.clientWidth;
+
+      const slidesPerView = clientWith > 750 ? 5 : 3.55;
+
+      var swiper = new Swiper(".swiperContainer", {
+        slidesPerView: slidesPerView ?? 4,
+        slideToClickedSlide: true,
+        centeredSlides: true,
+        centeredSlidesBounds: true,
+        spaceBetween: 0,
+        grabCursor: true,
+        // cssMode: true,
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+        mousewheel: true,
+        keyboard: true,
+        scrollbar: true,
+      });
     </script>
   </body>
 </html>

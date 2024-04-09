@@ -39,6 +39,11 @@ div::-webkit-scrollbar-track {
   height: 10px; /* 悬停时滑块的高度变大 */
 }
 
+.header div,
+.act-container div {
+  transition: all 0.1s ease-in-out;
+}
+
 .container {
   max-width: 1226px;
   min-width: 1000px;
@@ -93,11 +98,127 @@ div::-webkit-scrollbar-track {
   height: 100%;
 }
 
-/* .act-list {
-  height: 150px;
+.act-container {
   width: 100%;
-  outline: 1px solid #e5e5e5;
-} */
+  margin: 10px auto;
+  user-select: none;
+  position: relative;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  font-size: 18px;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.act-list {
+  width: calc(100% - 60px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.act-list .list-content {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: grabbing;
+}
+
+.act-list .list-content::-webkit-scrollbar {
+  display: none;
+}
+
+.act-item {
+  min-width: 234px;
+  max-width: 234px;
+  min-height: 120px;
+  max-height: 120px;
+  height: 100%;
+  border-radius: 7px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.act-item.active {
+  border: 1px solid var(--color-primary);
+}
+
+.act-item .act-item-img,
+.act-item .act-item-img img {
+  width: 100%;
+  height: 100%;
+}
+
+.act-container .left,
+.act-container .right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid #b5cdef;
+  position: absolute;
+  top: 100px;
+}
+
+.act-container .left:hover,
+.act-container .right:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.act-container .left::after,
+.act-container .right::after {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.act-container .left {
+  left: -5px;
+}
+
+.act-container .right {
+  right: -5px;
+}
+
+.divider-wrap {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.divider-wrap .divider {
+  border-top: 1px solid #e3e3e3;
+  flex-grow: 1;
+  height: 0;
+}
+
+.divider-wrap span {
+  margin: 0 10px;
+  font-size: 18px;
+  color: #999;
+}
 
 .info-box {
   line-height: 80px;
@@ -121,7 +242,7 @@ div::-webkit-scrollbar-track {
   padding-top: 0;
   box-shadow: 0 5px 5px 0 rgba(0, 0, 0, 0.06);
   outline: 1px solid #e5e5e5;
-  margin-top: 20px;
+  margin-top: 10px;
   border-radius: 7px;
 }
 
@@ -519,6 +640,50 @@ div::-webkit-scrollbar-track {
     margin-top: 0.2rem;
   }
 
+  .divider-wrap {
+    height: 0.4rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .divider-wrap .divider {
+    border-top: 0.01rem solid #cbcbcb;
+  }
+
+  .divider-wrap span {
+    font-size: 0.4rem;
+  }
+
+  .act-container {
+    width: 100%;
+    margin: 0.25rem auto;
+    user-select: none;
+    background: #eee;
+    padding: 0.25rem 0;
+  }
+
+  .act-list {
+    width: 100%;
+    height: 1.35rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    margin-left: 0.2rem;
+    padding-right: 0.2rem;
+  }
+
+  .act-item {
+    min-width: 2.68rem;
+    max-width: 2.68rem;
+    min-height: 1.35rem;
+    max-height: 1.35rem;
+    padding: 0.1rem;
+  }
+
+  .act-container .left,
+  .act-container .right {
+    display: none;
+  }
+
   .info-box {
     line-height: 1.3rem;
   }
@@ -528,6 +693,15 @@ div::-webkit-scrollbar-track {
     height: auto;
     box-shadow: none;
     outline: none;
+  }
+
+  .lucky-val {
+    height: 0.8rem;
+    line-height: normal;
+  }
+
+  .lucky-val p {
+    line-height: 1;
   }
 
   .roulette-wrap {
