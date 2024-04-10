@@ -222,6 +222,8 @@
             Diamond: 2,
           };
 
+          const cursorIcon = `url('./img/finger_icon.ico'), pointer`;
+
           const recordTypes = [
             {
               type: 0,
@@ -468,7 +470,7 @@
             config.finishedRun = true;
 
             const pointer = document.querySelector(".pointer");
-            pointer.style.cursor = "url('./img/finger_icon.png'), pointer";
+            pointer.style.cursor = cursorIcon;
           };
 
           /** 闪烁完成 */
@@ -531,7 +533,7 @@
 
           onMounted(() => {
             const pointer = document.querySelector(".pointer");
-            pointer.style.cursor = "url('./img/finger_icon.png'), pointer";
+            pointer.style.cursor = cursorIcon;
           });
           return {
             config,
