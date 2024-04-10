@@ -209,7 +209,7 @@
     </div>
 
     <script>
-      const { createApp, ref, reactive, computed } = Vue;
+      const { createApp, ref, reactive, computed, onMounted } = Vue;
 
       createApp({
         setup() {
@@ -529,6 +529,10 @@
           };
           //#endregion
 
+          onMounted(() => {
+            const pointer = document.querySelector(".pointer");
+            pointer.style.cursor = "url('./img/finger_icon.png'), pointer";
+          });
           return {
             config,
             active,

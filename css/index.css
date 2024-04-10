@@ -334,9 +334,7 @@ div::-webkit-scrollbar-track {
   justify-content: center;
   align-items: center;
   z-index: 3;
-
   user-select: none;
-  cursor: url(../img/finger_icon.png), pointer;
 }
 
 .roulette-container .pointer .draw-txt {
