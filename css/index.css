@@ -126,7 +126,7 @@ div::-webkit-scrollbar-track {
 }
 
 .act-list {
-  width: calc(100% - 60px);
+  width: calc(100% - 50px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -334,8 +334,9 @@ div::-webkit-scrollbar-track {
   justify-content: center;
   align-items: center;
   z-index: 3;
-  cursor: pointer;
+
   user-select: none;
+  cursor: url("/img/finger_icon.png"), pointer;
 }
 
 .roulette-container .pointer .draw-txt {
@@ -502,6 +503,7 @@ div::-webkit-scrollbar-track {
   margin: 20px auto;
   background-color: #fff;
   color: #333;
+  border-radius: 7px;
   box-shadow: 0 5px 5px 0 rgba(0, 0, 0, 0.06);
 }
 

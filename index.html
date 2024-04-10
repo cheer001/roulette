@@ -52,9 +52,9 @@
           <div class="list-content swiper-wrapper">
             <div
               class="act-item swiper-slide"
-              :class="{active:item===actionId}"
+              v-bind:class="{active:item===actionId}"
               v-for=" item in 7"
-              @click="onChangeActionId(item)"
+              v-on:click="onChangeActionId(item)"
             >
               <div class="act-item-img">
                 <img src="./img/rouletteActive.png" alt="" />
@@ -80,7 +80,7 @@
               <!-- 转盘背景及奖品 -->
               <div
                 class="roulette"
-                :style="{
+                v-bind:style="{
                   background: currentType.hdzpBg,
                   transform: rotateStyle,
                 }"
@@ -89,7 +89,7 @@
                 <div
                   class="roulette-item"
                   v-for="(item,index) in 10"
-                  :style="`transform: rotate(${index*36}deg);`"
+                  v-bind:style="`transform: rotate(${index*36}deg);`"
                 >
                   <span> {{item}}00 </span>
                   <img src="./img/img_zphdjp_s3.png" alt="" />
@@ -98,23 +98,23 @@
               <!-- 指针 -->
               <div
                 class="pointer"
-                :style="{
+                v-bind:style="{
                   background: currentType.ljcjBtn,
                   filter: finishedStatus ? 'grayscale(0.75)' : '',
                 }"
-                @click="handleDrawAward"
+                v-on:click="handleDrawAward"
               >
                 <span class="draw-txt"> 立即<br />抽奖 </span>
               </div>
               <!-- 中奖区域 -->
               <div
                 class="win-area"
-                :style="{ background: currentType.prizeArea }"
+                v-bind:style="{ background: currentType.prizeArea }"
               >
                 <img
                   src="./img/img_zphdxzg.png"
                   alt=""
-                  :class="{ flash: config.finishedRun }"
+                  v-bind:class="{ flash: config.finishedRun }"
                   @animationend="onFinishedFlash"
                 />
               </div>
@@ -123,12 +123,12 @@
               <div
                 class="type-item fl"
                 v-for="item in luckyRouletteSetting.items"
-                :class="{
+                v-bind:class="{
                   'type-btn': true,
                   disabled: active !== item.type && finishedStatus,
                   active: active === item.type,
                 }"
-                @click="onChangeType(item.type)"
+                v-on:click="onChangeType(item.type)"
               >
                 <p class="name">{{typeText(item.type)}}</p>
                 <p class="lucky-value">{{item.luckyValue}}幸运值</p>
@@ -141,8 +141,8 @@
               <div
                 class="record-type-item fl"
                 v-for="item in recordTypes"
-                :class="{active:recordType === item.type}"
-                @click="onChangeRecordType(item.type)"
+                v-bind:class="{active:recordType === item.type}"
+                v-on:click="onChangeRecordType(item.type)"
               >
                 {{item.name}}
               </div>
@@ -182,19 +182,19 @@
       <dialog id="winModal" ref="winModal">
         <div
           class="roulette-simg"
-          :style="{
+          v-bind:style="{
             background: winModalType.winBgs,
         }"
         ></div>
         <div
           class="roulette-img"
-          :style="{
+          v-bind:style="{
             background: winModalType.winBg,
         }"
         ></div>
         <div
           class="roulette-text"
-          :style="{
+          v-bind:style="{
             background: winModalType.winBtn,
           }"
         >
@@ -203,7 +203,7 @@
 
         <p class="bonus-text"><span>{{winBonus}}</span>已存入余额</p>
         <div class="footer">
-          <button @click="onCloseWin"></button>
+          <button v-on:click="onCloseWin"></button>
         </div>
       </dialog>
     </div>
@@ -450,6 +450,9 @@
           const run = (angle) => {
             let timer;
 
+            const pointer = document.querySelector(".pointer");
+            pointer.style.cursor = "not-allowed";
+
             config.begin += config.basic + angle;
 
             timer = setInterval(function () {
@@ -463,6 +466,9 @@
           /** 旋转完成 */
           const onFinishedRun = () => {
             config.finishedRun = true;
+
+            const pointer = document.querySelector(".pointer");
+            pointer.style.cursor = "url('/img/finger_icon.png'), pointer";
           };
 
           /** 闪烁完成 */
@@ -634,7 +640,7 @@
                 "
             >
                 <button
-                @click="onClick"
+                v-on:click="onClick"
                 style="
                     height: 40px;
                     width: 100%;
